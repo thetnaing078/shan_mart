@@ -151,7 +151,7 @@ $package
 
 ### Working with Blade view components
 
-Any Blade view components that your package provides should be placed in the `<package root>/Components` directory.
+Any Blade view components that your package provides should be placed in the `<package root>/src/Components` directory.
 
 You can register these views with the `hasViewComponents` command.
 
@@ -264,7 +264,7 @@ This will copy over the assets to the `public/vendor/<your-package-name>` direct
 
 ### Working with migrations
 
-The `PackageServiceProvider` assumes that any migrations are placed in this directory: `<package root>/database/migrations`. Inside that directory you can put any migrations. Make sure they all have a `php.stub` extension. Using that extension will make sure that static analysers won't get confused with classes existing in multiple places when your migration gets published.
+The `PackageServiceProvider` assumes that any migrations are placed in this directory: `<package root>/database/migrations`. Inside that directory you can put any migrations.
 
 To register your migration, you should pass its name without the extension to the `hasMigration` table. 
 

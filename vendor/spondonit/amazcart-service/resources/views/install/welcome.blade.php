@@ -5,7 +5,7 @@
 
 <div class="single-report-admit">
     <div class="card-header">
-        <h2 class="text-center text-uppercase" style="color: whitesmoke">{{ __('amazcart::install.welcome_title') }} | <?php echo str_rot13('<n uers="uggcf://AhyyWhatyr.pbz">Ahyyrq Ol AhyyWhatyr.pbz</n>');?> 
+        <h2 class="text-center text-uppercase" style="color: whitesmoke">{{ __('amazcart::install.welcome_title') }}
         </h2>
 
     </div>

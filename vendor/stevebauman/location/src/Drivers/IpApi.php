@@ -30,6 +30,7 @@ class IpApi extends Driver
         $position->latitude = (string) $location->lat;
         $position->longitude = (string) $location->lon;
         $position->areaCode = $location->region;
+        $position->timezone = $location->timezone;
 
         return $position;
     }

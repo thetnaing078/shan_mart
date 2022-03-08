@@ -108,7 +108,14 @@ class InstallController extends Controller{
 
      public function ManageAddOnsValidation(ModuleInstallRequest $request){
         $response = $this->repo->installModule($request->all());
-        return response()->json(['message' => __('service::install.module_verify'), 'reload' => true]);
+        if($response){
+            if($request->wantsJson()){
+                return response()->json(['message' => __('service::install.module_verify'), 'reload' => true]);
+            }
+            Toastr::success(__('service::install.module_verify'), 'Success');
+        }
+         return back();
+
     }
 
     public function uninstall(){

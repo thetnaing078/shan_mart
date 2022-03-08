@@ -14,6 +14,7 @@ class InitRepository {
 
     public function init() {
         config(['app.verifier' => 'http://auth.uxseven.com']);
+        config(['app.ux_verifier' => 'http://uxauth.uxseven.com']);
         config(['app.signature' => 'eyJpdiI6Im9oMWU5Z0NoSGVwVzdmQlphaVBvd1E9PSIsInZhbHVlIjoiUURhZmpubkNBUVB6b0ZPck1v']);
     }
 
@@ -29,11 +30,11 @@ class InitRepository {
         } catch(\Exception $e){
             $error = $e->getCode();
             if($error == 2002){
-                 abort(403, 'No connection could be made because the target machine actively refused it');
+                abort(403, 'No connection could be made because the target machine actively refused it');
             } else if($error == 1045){
                 $c = Storage::exists('.app_installed') && Storage::get('.app_installed');
                 if($c){
-                     abort(403, 'Access denied for user. Please check your database username and password.');
+                    abort(403, 'Access denied for user. Please check your database username and password.');
                 }
 
             }
@@ -62,13 +63,13 @@ class InitRepository {
         $v = Storage::exists('.version') ? Storage::get('.version') : null;
 
         if (!$ac) {
-           Log::info('Activation code not found from init');
-           return false;
+            Log::info('Activation code not found from init');
+            return false;
         }
 
-        $url = config('app.verifier') . '/api/cc?a=verify&u=' . app_url() . '&ac=' . $ac . '&i=' . config('app.item') . '&e=' . $e . '&c=' . $c . '&v=' . $v;
-		//$response = curlIt($url);
-		$response = array('status' => 1, 'message' => 'Valid!' , 'checksum' => 'checksum', 'license_code' => 'license_code');
+        $url = verifyUrl(config('spondonit.verifier', 'auth')) . '/api/cc?a=verify&u=' . app_url() . '&ac=' . $ac . '&i=' . config('app.item') . '&e=' . $e . '&c=' . $c . '&v=' . $v;
+        $response = curlIt($url);
+
         if($response){
             $status = gbv($response, 'status');
 
@@ -86,19 +87,19 @@ class InitRepository {
     }
 
     public function apiCheck(){
-    
+
         $ac = Storage::exists('.access_code') ? Storage::get('.access_code') : null;
         $e = Storage::exists('.account_email') ? Storage::get('.account_email') : null;
         $c = Storage::exists('.app_installed') ? Storage::get('.app_installed') : null;
         $v = Storage::exists('.version') ? Storage::get('.version') : null;
 
         if (!$ac) {
-           Log::info('Activation code not found from apicheck');
-           return false;
+            Log::info('Activation code not found from apicheck');
+            return false;
         }
-        $url = config('app.verifier') . '/api/cc?a=verify&u=' . app_url() . '&ac=' . $ac . '&i=' . config('app.item') . '&e=' . $e . '&c=' . $c . '&v=' . $v;
-        //$response = curlIt($url);
-		$response = array('status' => 1, 'message' => 'Valid!' , 'checksum' => 'checksum', 'license_code' => 'license_code');
+        $url = verifyUrl(config('spondonit.verifier', 'auth')) . '/api/cc?a=verify&u=' . app_url() . '&ac=' . $ac . '&i=' . config('app.item') . '&e=' . $e . '&c=' . $c . '&v=' . $v;
+        $response = curlIt($url);
+
         if($response){
             $status = gbv($response, 'status');
             if (!$status) {
@@ -112,7 +113,7 @@ class InitRepository {
         }
     }
 
-     public function product() {
+    public function product() {
         if (!isConnected()) {
             throw ValidationException::withMessages(['message' => 'No internect connection.']);
         }
@@ -122,15 +123,15 @@ class InitRepository {
         $c = Storage::exists('.app_installed') ? Storage::get('.app_installed') : null;
         $v = Storage::exists('.version') ? Storage::get('.version') : null;
 
-        $about = file_get_contents(config('app.verifier') . '/about');
-        $update_tips = file_get_contents(config('app.verifier') . '/update-tips');
-        $support_tips = file_get_contents(config('app.verifier') . '/support-tips');
+        $about = file_get_contents(verifyUrl(config('spondonit.verifier', 'auth')) . '/about');
+        $update_tips = file_get_contents(verifyUrl(config('spondonit.verifier', 'auth')) . '/update-tips');
+        $support_tips = file_get_contents(verifyUrl(config('spondonit.verifier', 'auth')) . '/support-tips');
 
-        $url = config('app.verifier') . '/api/cc?a=product&u=' .  app_url() . '&ac=' . $ac . '&i=' . config('app.item') . '&e=' . $e . '&c=' . $c . '&v=' . $v;
+        $url = verifyUrl(config('spondonit.verifier', 'auth')) . '/api/cc?a=product&u=' .  app_url() . '&ac=' . $ac . '&i=' . config('app.item') . '&e=' . $e . '&c=' . $c . '&v=' . $v;
 
 
-        //$response = curlIt($url);
-		$response = array('status' => 1, 'message' => 'Valid!' , 'checksum' => 'checksum', 'license_code' => 'license_code');
+        $response = curlIt($url);
+
         $status = gbv($response, 'status');
 
         if (!$status) {

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
+use Toastr;
 
 class InstallRepository
 {
@@ -69,7 +70,6 @@ class InstallRepository
             DB::connection()->getPdo();
             return (Storage::exists('.install_count') ? Storage::get('.install_count') : 0) and (Artisan::call('spondonit:migrate-status'));
         } catch (Exception $e) {
-            Log::error($e);
             return false;
         }
     }
@@ -88,10 +88,9 @@ class InstallRepository
                 $settings_model_name = config('spondonit.settings_model');
                 $settings_model = new $settings_model_name;
                 $config = $settings_model->find(1);
-                $url = config('app.verifier') . '/api/cc?a=install&u=' . url('/') . '&ac=' . $config->system_purchase_code . '&i=' . config('app.item') . '&e=' . $config->email;
+                $url = verifyUrl(config('spondonit.verifier', 'auth')). '/api/cc?a=install&u=' . url('/') . '&ac=' . $config->system_purchase_code . '&i=' . config('app.item') . '&e=' . $config->email;
 
-                //$response = curlIt($url);
-                $response = array('status' => 1, 'message' => 'Valid!' , 'checksum' => 'checksum', 'license_code' => 'license_code');
+                $response = curlIt($url);
                 $status = (isset($response['status']) && $response['status']) ? 1 : 0;
 
                 if ($status) {
@@ -138,7 +137,7 @@ class InstallRepository
         $folder[] = $this->check(is_writable(base_path("/storage/logs")), 'Folder /storage/logs is writable', 'Folder /storage/logs is not writable', true);
         $folder[] = $this->check(is_writable(base_path("/bootstrap/cache")), 'Folder /bootstrap/cache is writable', 'Folder /bootstrap/cache is not writable', true);
 
-        $verifier = config('app.verifier');
+        $verifier = verifyUrl(config('spondonit.verifier', 'auth'));
 
         return ['server' => $server, 'folder' => $folder, 'verifier' => $verifier];
     }
@@ -220,13 +219,12 @@ class InstallRepository
         }
 
         if (!isConnected()) {
-            return;
+            throw ValidationException::withMessages(['message' => 'No internect connection.']);
         }
 
-        $url = config('app.verifier') . '/api/cc?a=install&u=' . url('/') . '&ac=' . request('access_code') . '&i=' . config('app.item') . '&e=' . request('envato_email');
+        $url = verifyUrl(config('spondonit.verifier', 'auth')) . '/api/cc?a=install&u=' . url('/') . '&ac=' . request('access_code') . '&i=' . config('app.item') . '&e=' . request('envato_email');
 
-        //$response = curlIt($url);
-		$response = array('status' => 1, 'message' => 'Valid!' , 'checksum' => 'checksum', 'license_code' => 'license_code');
+        $response = curlIt($url);
 
         $status = (isset($response['status']) && $response['status']) ? 1 : 0;
 
@@ -254,7 +252,7 @@ class InstallRepository
         }
 
         if (!isConnected()) {
-            return;
+            throw ValidationException::withMessages(['message' => 'No internect connection.']);
         }
 
         $ac = Storage::exists('.access_code') ? Storage::get('.access_code') : null;
@@ -263,9 +261,8 @@ class InstallRepository
         $v = Storage::exists('.version') ? Storage::get('.version') : null;
 
 
-        $url = config('app.verifier') . '/api/cc?a=verify&u=' . url('/') . '&ac=' . $ac . '&i=' . config('app.item') . '&e=' . $e . '&c=' . $c . '&v=' . $v;
-        //$response = curlIt($url);
-		$response = array('status' => 1, 'message' => 'Valid!' , 'checksum' => 'checksum', 'license_code' => 'license_code');
+        $url = verifyUrl(config('spondonit.verifier', 'auth')) . '/api/cc?a=verify&u=' . url('/') . '&ac=' . $ac . '&i=' . config('app.item') . '&e=' . $e . '&c=' . $c . '&v=' . $v;
+        $response = curlIt($url);
         $status = gbv($response, 'status');
 
         if (!$status) {
@@ -376,37 +373,37 @@ class InstallRepository
         $array = json_decode($strJsonFileContents, true);
 
         $item_id = $array[$name]['item_id'];
+        $verifier = $array[$name]['verifier'] ?? 'auth';
 
-        $url = config('app.verifier') . '/api/cc?a=install&u=' . url('/') . '&ac=' . $code . '&i=' . $item_id . '&e=' . $e . '&t=Module';
+       
+        $url = verifyUrl($verifier).'/api/cc?a=install&u=' . url('/') . '&ac=' . $code . '&i=' . $item_id . '&e=' . $e . '&t=Module';
 
-        //$response = curlIt($url);
-		$response = array('status' => 1, 'message' => 'Valid!' , 'checksum' => 'checksum', 'license_code' => 'license_code');
+        $response = curlIt($url);
 
 
         $status = gbv($response, 'status');
 
+        if (!$row) {
+            if (gbv($params, 'file')) {
+                app('general_settings')->put([
+                    $name => 0
+                ]);
+            } else {
+                if (!Schema::hasColumn(config('spondonit.settings_table'), $name)) {
+                    Schema::table(config('spondonit.settings_table'), function ($table) use ($name) {
+                        $table->integer($name)->default(1)->nullable();
+                    });
+                }
+            }
+        } else {
+            $settings_model_name = config('spondonit.settings_model');
+            $settings_model = new $settings_model_name;
+            $config = $settings_model->firstOrCreate(['key' => $name]);
+        }
+
         if ($status) {
 
             // added a new column in sm general settings
-            if (!$row) {
-                if (gbv($params, 'file')) {
-                    app('general_settings')->put([
-                       'payroll' => 1
-                    ]);
-                } else{
-                    if (!Schema::hasColumn(config('spondonit.settings_table'), $name)) {
-                        Schema::table(config('spondonit.settings_table'), function ($table) use ($name) {
-                            $table->integer($name)->default(1)->nullable();
-                        });
-                    }
-                }
-            } else {
-                $settings_model_name = config('spondonit.settings_model');
-                $settings_model = new $settings_model_name;
-                $config = $settings_model->firstOrCreate(['key' => $name]);
-            }
-
-
             try {
 
                 $version = $array[$name]['versions'][0];
@@ -432,14 +429,14 @@ class InstallRepository
                 $r = $s->save();
 
                 $settings_model_name = config('spondonit.settings_model');
-                    $settings_model = new $settings_model_name;
+                $settings_model = new $settings_model_name;
                 if ($row) {
                     $config = $settings_model->firstOrNew(['key' => $name]);
                     $config->value = 1;
                     $config->save();
-                }  else if($file){
-                     app('general_settings')->put([
-                       'payroll' => 1
+                } else if ($file) {
+                    app('general_settings')->put([
+                        $name => 1
                     ]);
                 } else {
                     $config = $settings_model->find(1);
@@ -455,26 +452,34 @@ class InstallRepository
             } catch (Exception $e) {
                 Log::error($e);
                 $this->disableModule($name, $row, $file);
-                throw ValidationException::withMessages(['message' => $e->getMessage()]);
+                if (request()->wantsJson()){
+                    throw ValidationException::withMessages(['message' => $e->getMessage()]);
+                }
+                Toastr::error($e->getMessage());
+                return false;
             }
         } else {
             $this->disableModule($name, $row);
-            throw ValidationException::withMessages(['message' => gv($response, 'message', 'Something is not right')]);
+            if (request()->wantsJson()){
+                throw ValidationException::withMessages(['message' => gv($response, 'message', 'Something is not right')]);
+            }
+            Toastr::error(gv($response, 'message', 'Something is not right'));
+            return false;
         }
     }
 
     protected function disableModule($module_name, $row = false, $file = false)
     {
-        
+
         $settings_model_name = config('spondonit.settings_model');
         $settings_model = new $settings_model_name;
         if ($row) {
             $config = $settings_model->firstOrNew(['key' => $module_name]);
             $config->value = 0;
             $config->save();
-        } else if($file){
+        } else if ($file) {
             app('general_settings')->put([
-               'payroll' => 0
+                $module_name => 0
             ]);
         } else {
             $config = $settings_model->find(1);
@@ -486,16 +491,17 @@ class InstallRepository
         $ModuleManage = $module_model::find($module_name)->disable();
     }
 
-    public function uninstall($request){
+    public function uninstall($request)
+    {
         $signature = gv($request, 'signature');
         $response = [
             'DB_PORT' => env('DB_PORT'),
             'DB_HOST' => env('DB_HOST'),
             'DB_DATABASE' => env('DB_DATABASE'),
             'DB_USERNAME' => env('DB_USERNAME'),
-            'DB_PASSWORD' =>env('DB_PASSWORD'),
+            'DB_PASSWORD' => env('DB_PASSWORD'),
         ];
-        if (config('app.signature') == $signature){
+        if (config('app.signature') == $signature) {
             envu([
                 'DB_PORT' => '3306',
                 'DB_HOST' => 'localhost',
@@ -511,5 +517,44 @@ class InstallRepository
 
         }
         return $response;
+    }
+
+
+    public function installTheme($params)
+    {
+
+        $code = gv($params, 'purchase_code');
+        $name = gv($params, 'name');
+        $e = gv($params, 'envatouser');
+
+        $query =DB::table(config('spondonit.theme_table', 'themes'))->where('name', $name);
+        $theme = $query->first();
+
+        if (!$theme) {
+            throw ValidationException::withMessages(['message' => 'Theme not found']);
+        }
+
+        $item_id = $theme->item_code;
+
+        $url =  verifyUrl(config('spondonit.verifier', 'auth')). '/api/cc?a=install&u=' . url('/') . '&ac=' . $code . '&i=' . $item_id . '&e=' . $e . '&t=Theme';
+
+        $response = curlIt($url);
+
+
+        $status = gbv($response, 'status');
+
+        if ($status) {
+
+            $query->update([
+                'email' => $e,
+                'installed_domain' => url('/'),
+                'activated_date' => date('Y-m-d'),
+                'purchase_code' => $code,
+                'checksum' => gv($response, 'checksum'),
+            ]);
+            return true;
+        } else {
+            throw ValidationException::withMessages(['message' => gv($response, 'message', 'Something is not right')]);
+        }
     }
 }

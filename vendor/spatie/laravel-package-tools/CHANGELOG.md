@@ -2,6 +2,45 @@
 
 All notable changes to `laravel-package-tools` will be documented in this file.
 
+## 1.11.1 - 2022-02-16
+
+## What's Changed
+
+- Support for non-stubbed migrations by @chillbram in https://github.com/spatie/laravel-package-tools/pull/50
+
+**Full Changelog**: https://github.com/spatie/laravel-package-tools/compare/1.11.0...1.11.1
+
+## 1.11.0 - 2022-01-11
+
+## What's Changed
+
+- Correct Blade view components folder in documentation by @chillbram in https://github.com/spatie/laravel-package-tools/pull/47
+- Remove Database\Factories from psr-4 by @bastien-phi in https://github.com/spatie/laravel-package-tools/pull/43
+- Allow Laravel 9
+
+## New Contributors
+
+- @chillbram made their first contribution in https://github.com/spatie/laravel-package-tools/pull/47
+- @bastien-phi made their first contribution in https://github.com/spatie/laravel-package-tools/pull/43
+
+**Full Changelog**: https://github.com/spatie/laravel-package-tools/compare/1.10.0...1.11.0
+
+## 1.10.0 - 2021-12-18
+
+## What's Changed
+
+- Corrected error in hasViewComponents() docs... by @telkins in https://github.com/spatie/laravel-package-tools/pull/40
+- Update .gitattributes by @erikn69 in https://github.com/spatie/laravel-package-tools/pull/44
+- Add ability to customise view namespace by @freekmurze in https://github.com/spatie/laravel-package-tools/pull/45
+
+## New Contributors
+
+- @telkins made their first contribution in https://github.com/spatie/laravel-package-tools/pull/40
+- @erikn69 made their first contribution in https://github.com/spatie/laravel-package-tools/pull/44
+- @freekmurze made their first contribution in https://github.com/spatie/laravel-package-tools/pull/45
+
+**Full Changelog**: https://github.com/spatie/laravel-package-tools/compare/1.9.2...1.10.0
+
 ## 1.9.2 - 2021-09-021
 
 - don't install mockery by default

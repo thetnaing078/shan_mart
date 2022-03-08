@@ -57,16 +57,27 @@ abstract class PackageServiceProvider extends ServiceProvider
 
             $now = Carbon::now();
             foreach ($this->package->migrationFileNames as $migrationFileName) {
+                $filePath = $this->package->basePath("/../database/migrations/{$migrationFileName}.php");
+                if (! file_exists($filePath)) {
+                    // Support for the .stub file extension
+                    $filePath .= '.stub';
+                }
+
                 $this->publishes([
-                    $this->package->basePath("/../database/migrations/{$migrationFileName}.php.stub") => $this->generateMigrationName(
+                    $filePath => $this->generateMigrationName(
                         $migrationFileName,
                         $now->addSecond()
                     ), ], "{$this->package->shortName()}-migrations");
             }
 
             if ($this->package->hasTranslations) {
+                // Laravel 8.64 and up uses lang_path().
+                $path = (version_compare(app()->version(), "8.64") >= 0)
+                    ? lang_path("vendor/{$this->package->shortName()}")
+                    : resource_path("lang/vendor/{$this->package->shortName()}");
+
                 $this->publishes([
-                    $this->package->basePath('/../resources/lang') => resource_path("lang/vendor/{$this->package->shortName()}"),
+                    $this->package->basePath('/../resources/lang') => $path,
                 ], "{$this->package->shortName()}-translations");
             }
 

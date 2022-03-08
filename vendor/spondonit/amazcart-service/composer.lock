@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "082a78803f487980b7247b04d56f7013",
+    "content-hash": "2cb3d9ac1742824d103a52792aac9228",
     "packages": [
         {
             "name": "spondonit/service",
@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://gitlab.com/spn4/service.git",
-                "reference": "9cd9091fe0437fdcb48dcb6a3c2d0748db53ef88"
+                "reference": "89082341d17a7b3ae754118ec9ab72a05f5e45ff"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://gitlab.com/api/v4/projects/spn4%2Fservice/repository/archive.zip?sha=9cd9091fe0437fdcb48dcb6a3c2d0748db53ef88",
-                "reference": "9cd9091fe0437fdcb48dcb6a3c2d0748db53ef88",
+                "url": "https://gitlab.com/api/v4/projects/spn4%2Fservice/repository/archive.zip?sha=89082341d17a7b3ae754118ec9ab72a05f5e45ff",
+                "reference": "89082341d17a7b3ae754118ec9ab72a05f5e45ff",
                 "shasum": ""
             },
             "default-branch": true,
@@ -30,12 +30,12 @@
                 }
             },
             "autoload": {
-                "psr-4": {
-                    "SpondonIt\\Service\\": "src/"
-                },
                 "files": [
                     "helpers/helper.php"
-                ]
+                ],
+                "psr-4": {
+                    "SpondonIt\\Service\\": "src/"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -49,9 +49,10 @@
             ],
             "description": "Basic Service Provider for Spondonit application",
             "support": {
-                "issues": "https://gitlab.com/api/v4/projects/23165125/issues"
+                "issues": "https://gitlab.com/spn4/service/-/issues",
+                "source": "https://gitlab.com/spn4/service/-/tree/v2.3.0"
             },
-            "time": "2021-05-20T19:39:56+00:00"
+            "time": "2022-03-04T08:42:24+00:00"
         }
     ],
     "packages-dev": [],
@@ -64,5 +65,5 @@
     "prefer-lowest": false,
     "platform": [],
     "platform-dev": [],
-    "plugin-api-version": "2.0.0"
+    "plugin-api-version": "2.2.0"
 }
